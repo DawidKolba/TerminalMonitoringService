@@ -1,0 +1,12 @@
+2023-07-18 09:56:23.3670 Info Auto loading assembly file: D:\Repozytoria\TerminalMonitoringService\TerminalMonitoringService\TerminalMonitoringService\bin\Debug\net6.0\NLog.Extensions.Logging.dll
+2023-07-18 09:56:23.3835 Info Loading assembly file: D:\Repozytoria\TerminalMonitoringService\TerminalMonitoringService\TerminalMonitoringService\bin\Debug\net6.0\NLog.Extensions.Logging.dll
+2023-07-18 09:56:23.9458 Info NLog.Extensions.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 1.7.4.1610. Product version: 1.7.4+e2bffa9e949fb4760d75aca224e78631c063f087. GlobalAssemblyCache: False
+2023-07-18 09:56:23.9494 Info Auto loading assembly file: D:\Repozytoria\TerminalMonitoringService\TerminalMonitoringService\TerminalMonitoringService\bin\Debug\net6.0\NLog.Extensions.Logging.dll succeeded!
+2023-07-18 09:56:23.9494 Info Message Template Auto Format enabled
+2023-07-18 09:56:24.0801 Info Adding target FileTarget(Name=allfile)
+2023-07-18 09:56:24.0801 Info Adding target ConsoleTarget(Name=lifetimeConsole)
+2023-07-18 09:56:24.1658 Info Validating config: TargetNames=allfile, lifetimeConsole, ConfigItems=47, FilePath=D:\Repozytoria\TerminalMonitoringService\TerminalMonitoringService\TerminalMonitoringService\bin\Debug\net6.0\NLog.config
+2023-07-18 09:56:24.2026 Info Configuration initialized.
+2023-07-18 09:56:24.2026 Info NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 4.7.11.13229. Product version: 4.7.11+33ed3a9f86277651e93ddf39cda64a046a06778b. GlobalAssemblyCache: False
+2023-07-18 09:56:33.0084 Info AppDomain Shutting down. Logger closing...
+2023-07-18 09:56:33.0605 Info Logger has been shut down.
