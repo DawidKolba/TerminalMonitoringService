@@ -8,7 +8,7 @@ namespace TerminalMonitoringService
     public class Worker : BackgroundService
     {
         private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
-        private List<ProcessMonitor> _processList = new List<ProcessMonitor>();
+        private List<ProcessMonitoringLogic> _processList = new List<ProcessMonitoringLogic>();
 
         //public Worker(ILogger<Worker> logger)
         //{
@@ -36,16 +36,16 @@ namespace TerminalMonitoringService
 
 
 
-        private List<ProcessMonitor> GetProcessesToChecking()
+        private List<ProcessMonitoringLogic> GetProcessesToChecking()
         {
             string filePath = "ProcessList.xml";
             string xmlContent = File.ReadAllText(filePath);
             Serializer serializer = new Serializer();
             ProcessToCheck processList = serializer.Deserialize<ProcessToCheck>(xmlContent);
-            List<ProcessMonitor> processes = new List<ProcessMonitor>();
+            List<ProcessMonitoringLogic> processes = new List<ProcessMonitoringLogic>();
             foreach (string processName in processList.ProcessName)
             {
-                processes.Add(new ProcessMonitor(processName));
+                processes.Add(new ProcessMonitoringLogic(processName));
             }
 
             return processes;
