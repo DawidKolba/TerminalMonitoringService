@@ -2,4 +2,5 @@
 <ProcessToCheck>
   <ProcessName>ProcessMonitoringService</ProcessName>
   <ProcessName>notepad</ProcessName>
+  <ProcessName>cmd</ProcessName>
 </ProcessToCheck>

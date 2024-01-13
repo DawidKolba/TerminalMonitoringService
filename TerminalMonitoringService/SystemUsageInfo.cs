@@ -37,6 +37,7 @@ namespace TerminalMonitoringService
                 if (resource != null) resource.Dispose();
             }
         }
+
         public void Dispose()
         {
             Dispose(true);
