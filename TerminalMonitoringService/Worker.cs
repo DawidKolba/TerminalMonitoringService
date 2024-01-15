@@ -23,11 +23,10 @@ namespace TerminalMonitoringService
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-           // var processList = GetProcessesToChecking();
-            var processList = _processMonitoringSettings.ProcessesToCheck;
+            var processList = GetProcessesToChecking();
             ProcessMonitoringManager manager = new ProcessMonitoringManager(
-                processList, 
-                _settings.ProcessCheckIntervalMs, 
+                processList,
+                _settings.ProcessCheckIntervalMs,
                 _settings.InternalCheckIntervalMs
                 );
 
@@ -42,23 +41,47 @@ namespace TerminalMonitoringService
         {
             using (var systemInfo = new SystemUsageInfo())
             {
-               await systemInfo.GetSystemUsageInfo(_settings.TopProcessesCount);
+                await systemInfo.GetSystemUsageInfo(_settings.TopProcessesCount);
             }
         }
 
-        private List<String> GetProcessesToChecking()
+        public List<string> FindExeFilesInDirectory(string directory)
         {
-            string filePath = "ProcessList.xml";
-            string xmlContent = File.ReadAllText(filePath);
-            Serializer serializer = new Serializer();
-            ProcessToCheck processList = serializer.Deserialize<ProcessToCheck>(xmlContent);
-            List<String> processes = new List<String>();
-            foreach (string processName in processList.ProcessName)
+            List<string> exeFiles = new List<string>();
+            try
             {
-                processes.Add(processName);
+                if (Directory.Exists(directory))
+                {
+                    var files = Directory.EnumerateFiles(directory, "*.exe", SearchOption.AllDirectories);
+                    exeFiles.AddRange(files);
+                }
+                else
+                {
+                    _logger.Error($"Directory not found: {directory}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error accessing directory {directory}");
+            }
+            return exeFiles;
+        }
+
+
+        private List<string> GetProcessesToChecking()
+        {
+            var list = new List<string>(_processMonitoringSettings.ProcessesToCheck);
+
+            if (_processMonitoringSettings.DirectoriesToCheck != null &&
+                _processMonitoringSettings.DirectoriesToCheck.Count > 0)
+            {
+                foreach (var directory in _processMonitoringSettings.DirectoriesToCheck)
+                {
+                    list.AddRange(FindExeFilesInDirectory(directory));
+                }
             }
 
-            return processes;
+            return list.Distinct().ToList(); 
         }
     }
 }
