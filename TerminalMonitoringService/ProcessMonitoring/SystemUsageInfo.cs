@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace TerminalMonitoringService
+namespace TerminalMonitoringService.ProcessMonitoring
 {
     internal class SystemUsageInfo : IDisposable
     {
@@ -27,12 +27,12 @@ namespace TerminalMonitoringService
         private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
         private Dictionary<int, (DateTime lastCheck, TimeSpan lastTotalProcessorTime)> cpuUsageInfo = new Dictionary<int, (DateTime, TimeSpan)>();
 
-        private static System.ComponentModel.IContainer components = null;
+        private static IContainer components = null;
         private static SafeHandle resource;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing && components != null)
             {
                 if (resource != null) resource.Dispose();
             }
@@ -140,7 +140,7 @@ namespace TerminalMonitoringService
             // CPU usage
             var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             cpuCounter.NextValue();
-            System.Threading.Thread.Sleep(1000);
+            Thread.Sleep(1000);
             var cpuUsage = cpuCounter.NextValue();
 
             // RAM usage
@@ -149,14 +149,14 @@ namespace TerminalMonitoringService
             GlobalMemoryStatusEx(ref memStatus);
 
             ulong totalMemoryMb = memStatus.ullTotalPhys / (1024 * 1024);
-            ulong usedMemoryMb = totalMemoryMb - (memStatus.ullAvailPhys / (1024 * 1024));
+            ulong usedMemoryMb = totalMemoryMb - memStatus.ullAvailPhys / (1024 * 1024);
 
             // Disk usage
             var diskWriteCounter = new PerformanceCounter("PhysicalDisk", "Disk Write Bytes/sec", "_Total");
             var diskReadCounter = new PerformanceCounter("PhysicalDisk", "Disk Read Bytes/sec", "_Total");
             diskWriteCounter.NextValue();
             diskReadCounter.NextValue();
-            System.Threading.Thread.Sleep(1000);
+            Thread.Sleep(1000);
             var diskWriteUsage = diskWriteCounter.NextValue() / (1024 * 1024); // Convert to MB/s
             var diskReadUsage = diskReadCounter.NextValue() / (1024 * 1024); // Convert to MB/s
 

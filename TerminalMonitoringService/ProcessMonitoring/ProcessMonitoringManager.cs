@@ -9,13 +9,16 @@ namespace TerminalMonitoringService.ProcessMonitoring
         private List<ProcessMonitoringLogic> ListOfProcessesToMonitoring { get; set; }
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private List<string> NamesOfAllProcessesToMonitoring;
-        private double CheckingIntervalInMs { get; set; } = 5000;
-        private double InternalCheckingIntervalInMs { get; set; } = 5000;
+        private double _checkingIntervalInMs { get; set; } = 5000;
+        private double _internalCheckingIntervalInMs { get; set; } = 5000;
         private Timer InternalTimerToManageExistingProcesses = new Timer();
-        public ProcessMonitoringManager(List<string> namesOfAllProcessesToMonitoring)
+
+        public ProcessMonitoringManager(List<string> namesOfAllProcessesToMonitoring, double CheckingIntervalInMs, double InternalCheckingIntervalInMs )
         {
             NamesOfAllProcessesToMonitoring = namesOfAllProcessesToMonitoring;
             ListOfProcessesToMonitoring = new List<ProcessMonitoringLogic>();
+            _checkingIntervalInMs = CheckingIntervalInMs;
+            _internalCheckingIntervalInMs = InternalCheckingIntervalInMs;
 
             foreach (var processName in NamesOfAllProcessesToMonitoring)
             {
@@ -25,11 +28,11 @@ namespace TerminalMonitoringService.ProcessMonitoring
                     foreach (var process in processesByName)
                     {
                         var loggerName = NLog.LogManager.GetLogger($"Resources_{process.ProcessName}_PID_{process.Id}");
-                        ListOfProcessesToMonitoring.Add(new ProcessMonitoringLogic(process, loggerName, CheckingIntervalInMs));
+                        ListOfProcessesToMonitoring.Add(new ProcessMonitoringLogic(process, loggerName, _checkingIntervalInMs));
                     }
 
                     InternalTimerToManageExistingProcesses.Elapsed += new ElapsedEventHandler(UpdateMonitoringList);
-                    InternalTimerToManageExistingProcesses.Interval = InternalCheckingIntervalInMs;
+                    InternalTimerToManageExistingProcesses.Interval = _internalCheckingIntervalInMs;
                     InternalTimerToManageExistingProcesses.Start();
                 }
                 catch (Exception ex)
@@ -62,7 +65,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
                     if (!ListOfProcessesToMonitoring.Any(pml => pml.ProcessToCheck?.Id == process.Id))
                     {
                         var loggerName = NLog.LogManager.GetLogger($"Resources_{process.ProcessName}_PID_{process.Id}");
-                        ListOfProcessesToMonitoring.Add(new ProcessMonitoringLogic(process, loggerName, CheckingIntervalInMs));
+                        ListOfProcessesToMonitoring.Add(new ProcessMonitoringLogic(process, loggerName, _checkingIntervalInMs));
                     }
                 }
             }

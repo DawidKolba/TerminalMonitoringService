@@ -1,30 +1,50 @@
 using ProcessMonitoringService.Serialization;
 using ProcessMonitoringService;
 using TerminalMonitoringService.ProcessMonitoring;
-using System.Diagnostics;
+using System.Timers;
+using Timer = System.Timers.Timer;
+using TerminalMonitoringService.Settings;
+using Microsoft.Extensions.Options;
 
 namespace TerminalMonitoringService
 {
     public class Worker : BackgroundService
     {
         private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+        Timer GetResourcesTimer = new Timer();
+        private readonly ApplicationSettings _settings;
+        private readonly ProcessMonitoringSettings _processMonitoringSettings;
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public Worker(IOptions<ApplicationSettings> timerSettings, IOptions<ProcessMonitoringSettings> processMonitoringSettings)
         {
-            var processList = GetProcessesToChecking();
-            ProcessMonitoringManager manager = new ProcessMonitoringManager(processList);
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000);
-                using (var systemInfo = new SystemUsageInfo())
-                {
-                    await systemInfo.GetSystemUsageInfo(10);
-                }
-            }
+            _settings = timerSettings.Value;
+            _processMonitoringSettings = processMonitoringSettings.Value;
         }
 
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+           // var processList = GetProcessesToChecking();
+            var processList = _processMonitoringSettings.ProcessesToCheck;
+            ProcessMonitoringManager manager = new ProcessMonitoringManager(
+                processList, 
+                _settings.ProcessCheckIntervalMs, 
+                _settings.InternalCheckIntervalMs
+                );
 
+            GetResourcesTimer.Elapsed += new ElapsedEventHandler(GetResourcesTimerElapsedLogicAsync);
+            GetResourcesTimer.Interval = _settings.SystemResourcesIntervalMs;
+            GetResourcesTimer.Start();
+
+            return Task.CompletedTask;
+        }
+
+        private async void GetResourcesTimerElapsedLogicAsync(object sender, EventArgs e)
+        {
+            using (var systemInfo = new SystemUsageInfo())
+            {
+               await systemInfo.GetSystemUsageInfo(_settings.TopProcessesCount);
+            }
+        }
 
         private List<String> GetProcessesToChecking()
         {
