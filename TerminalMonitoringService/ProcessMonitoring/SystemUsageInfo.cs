@@ -44,61 +44,45 @@ namespace TerminalMonitoringService.ProcessMonitoring
             GC.SuppressFinalize(this);
         }
 
-
         public async Task GetSystemUsageInfo(int topProcessesCount)
         {
             try
             {
-                await Task.Run(async () =>
+                _logger.Info($"TOTAL SYSTEM USAGE: {_getSystemResourceUsage().Result}");
+
+                var allProcesses = Process.GetProcesses();
+                var cpuUsageTasks = allProcesses.Select(process => GetCpuUsageWithProcessInfo(process)).ToList();
+
+                var completedTasks = await Task.WhenAll(cpuUsageTasks);
+                var processInfos = completedTasks.ToList();
+
+                var topMemoryProcesses = processInfos.OrderByDescending(p => p.MemoryUsage).Take(topProcessesCount);
+                var topCpuProcesses = processInfos.OrderByDescending(p => p.CpuUsage).Take(topProcessesCount);
+                var topHandleProcesses = processInfos.OrderByDescending(p => p.HandleCount).Take(topProcessesCount);
+
+                var builder = new StringBuilder();
+
+                AppendProcessInfo("Top Processes by Memory Usage:", topMemoryProcesses);
+                AppendProcessInfo("\nTop Processes by CPU Usage:", topCpuProcesses);
+                AppendProcessInfo("\nTop Processes by Handle Count:", topHandleProcesses);
+
+                _logger.Info(builder);
+
+                void AppendProcessInfo(string title, IEnumerable<ProcessInfo> processes)
                 {
-                    await Task.Run(() =>
-                    {
-                        _logger.Info($"TOTAL SYSTEM USAGE: {_getSystemResourceUsage().Result}");
-                    });
-
-                    var allProcesses = Process.GetProcesses();
-                    var topMemoryProcesses = allProcesses.OrderByDescending(p => p.WorkingSet64).Take(topProcessesCount);
-                    var cpuUsageTasks = allProcesses.Select(process => _getCpuUsage(process)).ToList();
-
-                    await Task.WhenAll(cpuUsageTasks);
-
-                    var cpuUsages = cpuUsageTasks.Select(task => task.Result).ToList();
-
-                    var topCpuProcesses = allProcesses
-                        .Select((process, index) => new { Process = process, CpuUsage = cpuUsages[index] })
-                        .OrderByDescending(x => x.CpuUsage)
-                        .Take(topProcessesCount)
-                        .Select(x => x.Process);
-                    var topHandleProcesses = allProcesses.OrderByDescending(p => p.HandleCount).Take(topProcessesCount);
-                    var builder = new StringBuilder();
-
-                    builder.AppendLine("Top Processes by Memory Usage:");
-
-                    foreach (var process in topMemoryProcesses)
-                    {
-                        builder.AppendLine(GetProcessUsageInfo(process).Result);
-                    }
-
-                    builder.AppendLine("\nTop Processes by CPU Usage:");
-                    foreach (var process in topCpuProcesses)
+                    builder.AppendLine(title);
+                    foreach (var info in processes)
                     {
                         try
                         {
-                            builder.AppendLine(GetProcessUsageInfo(process).Result);
+                            builder.AppendLine(GetProcessUsageInfo(info.Process));
                         }
                         catch (AggregateException)
                         {
-                            _logger.Warn($"Cannot get info for: {process}");
+                            _logger.Warn($"Cannot get info for: {info.Process}");
                         }
                     }
-
-                    builder.AppendLine("\nTop Processes by Handle Count:");
-                    foreach (var process in topHandleProcesses)
-                    {
-                        builder.AppendLine(GetProcessUsageInfo(process).Result);
-                    }
-                    _logger.Info(builder);
-                });
+                }
             }
             catch (Exception ex)
             {
@@ -106,7 +90,27 @@ namespace TerminalMonitoringService.ProcessMonitoring
             }
         }
 
-        public async Task<string> GetProcessUsageInfo(Process process)
+        private async Task<ProcessInfo> GetCpuUsageWithProcessInfo(Process process)
+        {
+            try
+            {
+                var cpuUsage = await _getCpuUsage(process);
+                return new ProcessInfo
+                {
+                    Process = process,
+                    CpuUsage = cpuUsage,
+                    MemoryUsage = process.WorkingSet64,
+                    HandleCount = process.HandleCount
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn($"Failed to get CPU usage for {process.ProcessName}: {ex.Message}");
+                return null; // lub zwróć odpowiedni obiekt ProcessInfo z wartościami domyślnymi
+            }
+        }
+
+        public string GetProcessUsageInfo(Process process)
         {
             double workingMemoryMb = Math.Round(process.WorkingSet64 / 1024d / 1024d, 2);
             string workingMemoryMbFormatted = workingMemoryMb.ToString("N2").Replace('.', ',');

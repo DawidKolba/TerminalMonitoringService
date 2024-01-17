@@ -5,6 +5,7 @@ using System.Timers;
 using Timer = System.Timers.Timer;
 using TerminalMonitoringService.Settings;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace TerminalMonitoringService
 {
@@ -15,15 +16,17 @@ namespace TerminalMonitoringService
         private readonly ApplicationSettings _settings;
         private readonly ProcessMonitoringSettings _processMonitoringSettings;
 
-        public Worker(IOptions<ApplicationSettings> timerSettings, IOptions<ProcessMonitoringSettings> processMonitoringSettings)
+        public Worker(IOptions<ApplicationSettings> appSettings, IOptions<ProcessMonitoringSettings> processMonitoringSettings)
         {
-            _settings = timerSettings.Value;
+            _settings = appSettings.Value;
             _processMonitoringSettings = processMonitoringSettings.Value;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var processList = GetProcessesToChecking();
+            PrintMonitoringProcessesToLogs(processList);
+
             ProcessMonitoringManager manager = new ProcessMonitoringManager(
                 processList,
                 _settings.ProcessCheckIntervalMs,
@@ -35,6 +38,18 @@ namespace TerminalMonitoringService
             GetResourcesTimer.Start();
 
             return Task.CompletedTask;
+        }
+
+        private void PrintMonitoringProcessesToLogs(List<string> processList)
+        {
+            _logger.Info("Dump of processes to monitoring  START ----------------------->");
+
+            foreach (var item in processList)
+            {
+                _logger.Info($"Process: {item}");
+            }
+
+            _logger.Info("<----------------------- END Dump of processes to monitoring");
         }
 
         private async void GetResourcesTimerElapsedLogicAsync(object sender, EventArgs e)
@@ -68,7 +83,7 @@ namespace TerminalMonitoringService
         }
 
 
-        private List<string> GetProcessesToChecking()
+        private List<string> GetProcessesFromConfig()
         {
             var list = new List<string>(_processMonitoringSettings.ProcessesToCheck);
 
@@ -81,7 +96,22 @@ namespace TerminalMonitoringService
                 }
             }
 
-            return list.Distinct().ToList(); 
+            return list.Distinct().ToList();
         }
+
+        private List<string> GetProcessesToChecking()
+        {
+            var list = new List<string>();
+            foreach (var process in GetProcessesFromConfig())
+            {
+                var fileName = Path.GetFileNameWithoutExtension(process);
+                if (!list.Contains(fileName))
+                {
+                    list.Add(fileName);
+                }
+            }
+            return list;
+        }
+
     }
 }

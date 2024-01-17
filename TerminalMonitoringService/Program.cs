@@ -14,7 +14,7 @@ IHost host = Host.CreateDefaultBuilder(args)
        .ConfigureServices((hostBuilderContext, services) =>
        {
            var configuration = hostBuilderContext.Configuration;
-           services.Configure<ApplicationSettings>(configuration.GetSection("Timers"));
+           services.Configure<ApplicationSettings>(configuration.GetSection("ApplicationSettings"));
            services.Configure<ProcessMonitoringSettings>(configuration.GetSection("ProcessMonitoring"));
 
            services.AddHostedService<Worker>();
