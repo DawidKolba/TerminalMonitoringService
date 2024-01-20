@@ -15,8 +15,13 @@ The service gathers detailed information about system-wide resource usage, inclu
 - Configure the service via appsettings.json to set monitoring intervals, specify processes, and designate directories for monitoring.
 - The service scans the specified folders at startup and adds all .exe files to the monitoring list.
 
-## Installation and Running
-The service can be installed and run as a Windows service, ensuring uninterrupted monitoring. Use the provided InstallService.bat script for easy installation.
+## Building the Application
+
+Before using the Terminal Monitoring Service, it's essential to build the application. Follow the standard build process for a .NET application.
+
+## Installation
+
+After building the application, use the `installservice.bat` script to install the service on your system. This script automates the installation process, making it easy to set up the service for monitoring.
 
 ## Usage
 Once installed, the service runs in the background, periodically checking and logging the resource usage of the monitored processes. This data is logged in a format optimized for analysis in spreadsheet software.
