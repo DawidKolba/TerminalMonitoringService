@@ -66,7 +66,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
                     ProcessToCheck = null;
                     return;
                 }
-                var cpuUsageTask = _getCpuUsage();
+                var cpuUsageTask = GetCpuUsage();
                 cpuUsageTask.Wait();
 
                 var cpuUsage = cpuUsageTask.Result;
@@ -74,10 +74,10 @@ namespace TerminalMonitoringService.ProcessMonitoring
                                     : cpuUsage == 101.0 ? "Error"
                                     : cpuUsage.ToString("N2");
 
-                int nameColumnWidth = 35; // Długość dla nazwy procesu
-                int cpuColumnWidth = 5; // Długość dla użycia CPU
-                int memoryColumnWidth = 10; // Długość dla pamięci roboczej
-                int handleColumnWidth = 5; // Długość dla liczby uchwytów
+                int nameColumnWidth = 35; // Length for process name
+                int cpuColumnWidth = 5; // Length for CPU usage
+                int memoryColumnWidth = 10; // Length for working memory
+                int handleColumnWidth = 5; // Length for number of handles
 
                 double workingMemoryMb = Math.Round(ProcessToCheck.WorkingSet64 / 1024d / 1024d, 2);
                 string workingMemoryMbFormatted = workingMemoryMb.ToString("N2").Replace('.', ',');
@@ -101,7 +101,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
             }
         }
 
-        private async Task<double> _getCpuUsage()
+        private async Task<double> GetCpuUsage()
         {
             try
             {
@@ -123,7 +123,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
                 {
                     cpuUsageInfo[ProcessToCheck.Id] = (DateTime.UtcNow, ProcessToCheck.TotalProcessorTime);
                     await Task.Delay(500);
-                    return await _getCpuUsage();
+                    return await GetCpuUsage();
                 }
 
                 return Math.Round(cpuUsage, 2);

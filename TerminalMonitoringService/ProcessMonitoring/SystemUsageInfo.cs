@@ -106,7 +106,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
             catch (Exception ex)
             {
                 _logger.Warn($"Failed to get CPU usage for {process.ProcessName}: {ex.Message}");
-                return null; // lub zwróć odpowiedni obiekt ProcessInfo z wartościami domyślnymi
+                return null; 
             }
         }
 
@@ -122,10 +122,11 @@ namespace TerminalMonitoringService.ProcessMonitoring
                                 : cpuUsage == 101.0 ? "Error"
                                 : cpuUsage.ToString("N2");
 
-            int nameColumnWidth = 45; // Długość dla nazwy procesu
-            int cpuColumnWidth = 15; // Długość dla użycia CPU
-            int memoryColumnWidth = 15; // Długość dla pamięci roboczej
-            int handleColumnWidth = 10; // Długość dla liczby uchwytów
+            int nameColumnWidth = 45; // Length for process name
+            int cpuColumnWidth = 15; // Length for CPU usage
+            int memoryColumnWidth = 15; // Length for working memory
+            int handleColumnWidth = 10; // Length for number of handles
+
 
             string processNamePadded = process.ProcessName.PadRight(nameColumnWidth);
             string cpuUsagePadded = cpuUsageString.PadRight(cpuColumnWidth);
