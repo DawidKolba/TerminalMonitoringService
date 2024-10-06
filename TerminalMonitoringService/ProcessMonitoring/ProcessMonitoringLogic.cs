@@ -13,22 +13,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
         private static SafeHandle _resource;
         public Process? ProcessToCheck { get; set; }
         private System.Timers.Timer _processCheckingTimer = new System.Timers.Timer();
-        private Dictionary<int, (DateTime lastCheck, TimeSpan lastTotalProcessorTime)> cpuUsageInfo = new Dictionary<int, (DateTime, TimeSpan)>();
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing && (_components != null))
-            {
-                if (_resource != null) _resource.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            _processCheckingTimer.Stop();
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        private Dictionary<int, (DateTime lastCheck, TimeSpan lastTotalProcessorTime)> cpuUsageInfo = new Dictionary<int, (DateTime, TimeSpan)>();       
 
         public ProcessMonitoringLogic(Process process, NLog.Logger logger, double checkingIntervalInMs)
         {
@@ -48,12 +33,11 @@ namespace TerminalMonitoringService.ProcessMonitoring
                 ProcessToCheck = null;
                 _logger.Error(ex);
             }
-        }
+        }      
 
         public void StopMonitoringProcess()
         {
             _logger.Info($"Stop monitoring resources for process {_processName}");
-
             Dispose();
         }
 
@@ -137,6 +121,21 @@ namespace TerminalMonitoringService.ProcessMonitoring
                 _logger.Error(ex);
                 return 101.0;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing && (_components != null))
+            {
+                if (_resource != null) _resource.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            _processCheckingTimer.Stop();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -28,21 +28,7 @@ namespace TerminalMonitoringService.ProcessMonitoring
         private Dictionary<int, (DateTime lastCheck, TimeSpan lastTotalProcessorTime)> cpuUsageInfo = new Dictionary<int, (DateTime, TimeSpan)>();
 
         private static IContainer components = null;
-        private static SafeHandle resource;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing && components != null)
-            {
-                if (resource != null) resource.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        private static SafeHandle resource;      
 
         public async Task GetSystemUsageInfo(int topProcessesCount)
         {
@@ -90,26 +76,6 @@ namespace TerminalMonitoringService.ProcessMonitoring
             }
         }
 
-        private async Task<ProcessInfo> GetCpuUsageWithProcessInfo(Process process)
-        {
-            try
-            {
-                var cpuUsage = await _getCpuUsage(process);
-                return new ProcessInfo
-                {
-                    Process = process,
-                    CpuUsage = cpuUsage,
-                    MemoryUsage = process.WorkingSet64,
-                    HandleCount = process.HandleCount
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.Warn($"Failed to get CPU usage for {process.ProcessName}: {ex.Message}");
-                return null; 
-            }
-        }
-
         public string GetProcessUsageInfo(Process process)
         {
             double workingMemoryMb = Math.Round(process.WorkingSet64 / 1024d / 1024d, 2);
@@ -138,7 +104,27 @@ namespace TerminalMonitoringService.ProcessMonitoring
                    $"Working Memory:;\t{workingMemoryPadded};MB;\t" +
                    $"Handle Count:;\t{handleCountPadded};";
 
-        }
+        }       
+
+        private async Task<ProcessInfo> GetCpuUsageWithProcessInfo(Process process)
+        {
+            try
+            {
+                var cpuUsage = await _getCpuUsage(process);
+                return new ProcessInfo
+                {
+                    Process = process,
+                    CpuUsage = cpuUsage,
+                    MemoryUsage = process.WorkingSet64,
+                    HandleCount = process.HandleCount
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn($"Failed to get CPU usage for {process.ProcessName}: {ex.Message}");
+                return null; 
+            }
+        }     
 
         private async Task<string> _getSystemResourceUsage()
         {
@@ -168,7 +154,6 @@ namespace TerminalMonitoringService.ProcessMonitoring
             return $"CPU Usage: {cpuUsage}% " +
                    $"RAM Usage: {usedMemoryMb} MB / {totalMemoryMb} MB " +
                    $"Disk Usage: write: {diskWriteUsage:N2} MB/s read: {diskReadUsage:N2} MB/s";
-
         }
 
         private async Task<double> _getCpuUsage(Process process)
@@ -206,6 +191,20 @@ namespace TerminalMonitoringService.ProcessMonitoring
             {
                 _logger.Error(ex);
                 return 101.0;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing && components != null)
+            {
+                if (resource != null) resource.Dispose();
             }
         }
     }
