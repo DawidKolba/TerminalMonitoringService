@@ -1,11 +1,8 @@
-using ProcessMonitoringService.Serialization;
-using ProcessMonitoringService;
 using TerminalMonitoringService.ProcessMonitoring;
 using System.Timers;
 using Timer = System.Timers.Timer;
 using TerminalMonitoringService.Settings;
 using Microsoft.Extensions.Options;
-using System.Reflection;
 
 namespace TerminalMonitoringService
 {
